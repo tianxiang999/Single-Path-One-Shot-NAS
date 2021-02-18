@@ -1,3 +1,4 @@
+from numpy.core.fromnumeric import size
 import torch
 import utils
 import numpy as np
@@ -228,3 +229,56 @@ def validate(args, epoch, val_data, device, model, criterion, supernet, choice=N
         print('[Val_Accuracy epoch:%d] val_loss:%f, val_acc:%f'
               % (epoch + 1, val_loss / (step + 1), val_top1.avg))
         return val_top1.avg
+
+def select_top_arch (args, epoch, val_data, device, model, criterion, supernet):
+
+    print ("tianxiang in select_top3_arch")
+    random_scope = 100
+    choice_list = []
+    arch_val_acc = []
+
+    for cnt in range(random_scope):
+        my_choice = utils.random_choice(args.num_choices, args.layers)
+        choice_list.append(my_choice)
+
+        # validate the choice arch
+        val = validate(args, epoch, val_loader, device, model, criterion, supernet=True, choice=my_choice)
+        arch_val_acc.append(val)
+
+    # eval val acc and choose top archs
+    top = 3 # use top3 archs
+    sortedlist = arch_val_acc.copy()
+    top_choice_list = []
+
+    sortedlist.sort(reverse=True)
+
+    for tmp in range(top):
+        idx = arch_val_acc.index(sortedlist(tmp))
+        top_choice_list.append(choice_list(idx))
+
+    return top_choice_list
+
+
+
+
+def select_test():
+
+    print ("i'm here")
+    random_scope = 100
+    choice_list = []
+    arch_val_acc = []
+
+    for cnt in range(random_scope):
+        choice = utils.random_choice(4, 20)
+        choice_list.append(choice)
+
+    print(choice_list[0])
+    print(choice_list[1])
+
+def pos_test(a, b = 1):
+    list = [1,4,13,12,11,21]
+    list2 = list.copy()
+    list.sort(reverse=True)
+    print(list)
+    print(list2)
+    print(size(list))

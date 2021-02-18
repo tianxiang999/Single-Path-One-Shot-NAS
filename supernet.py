@@ -8,9 +8,9 @@ import torch.nn as nn
 from thop import profile
 from torchvision import datasets
 from utils import data_transforms
-from model import SinglePath_OneShot, train, validate
+from model import SinglePath_OneShot, train, validate, select_top_arch
 from torchsummary import summary
-
+from numpy.core.fromnumeric import size
 
 def main():
     # args & device
@@ -57,12 +57,28 @@ def main():
 
     # train supernet
     start = time.time()
-    for epoch in range(args.epochs):
+
+    # weight shocking test
+    warmup_batches = 10
+    for epoch in range(warmup_batches):
         train(args, epoch, train_loader, device, model, criterion, optimizer, scheduler, supernet=True)
         scheduler.step()
+
+    # contain top 3 best arch
+    top_list = select_top_arch(args, epoch, val_loader, device, model, criterion, supernet=True)
+
+    # for each train epoch, train and test every top arch's val acc
+    for epoch in range(args.epochs):
+        train(args, epoch, train_loader, device, model, criterion, optimizer, scheduler, supernet=True)
+
+        scheduler.step()
+
         if (epoch + 1) % args.val_interval == 0:
-            validate(args, epoch, val_loader, device, model, criterion, supernet=True)
-            utils.save_checkpoint({'state_dict': model.state_dict(), }, epoch + 1, tag=args.exp_name + '_super')
+            for top in range(size(top_list)):
+                val = validate(args, epoch, val_loader, device, model, criterion, supernet=True,choice=top_list(top))
+                print("tianxiang: top ",(top+1)," arch val acc:",val)
+            # utils.save_checkpoint({'state_dict': model.state_dict(), }, epoch + 1, tag=args.exp_name + '_super')
+
     utils.time_record(start)
 
 
