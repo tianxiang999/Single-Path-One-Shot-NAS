@@ -59,25 +59,33 @@ def main():
     start = time.time()
 
     # weight shocking test
-    warmup_batches = 10
+    warmup_batches = 2
+    print ("tianxiang: start warmup batch")
     for epoch in range(warmup_batches):
         train(args, epoch, train_loader, device, model, criterion, optimizer, scheduler, supernet=True)
         scheduler.step()
 
+    print ("tianxiang: select top arch:")
     # contain top 3 best arch
-    top_list = select_top_arch(args, epoch, val_loader, device, model, criterion, supernet=True)
-
+    _, top_list = select_top_arch(args, epoch, val_loader, device, model, criterion, supernet=True)
+    # print(list_size)
+    for t in range(3):
+        print("top",t,"list: ",top_list[t])
+    
+    print ("tianxiang: start train and trace")
     # for each train epoch, train and test every top arch's val acc
     for epoch in range(args.epochs):
         train(args, epoch, train_loader, device, model, criterion, optimizer, scheduler, supernet=True)
 
+        for top in range(3):
+            val = validate(args, epoch, val_loader, device, model, criterion, supernet=True,choice=top_list[top])
+            print("tianxiang: top ",(top+1)," arch val acc:",val)
+
         scheduler.step()
 
         if (epoch + 1) % args.val_interval == 0:
-            for top in range(size(top_list)):
-                val = validate(args, epoch, val_loader, device, model, criterion, supernet=True,choice=top_list(top))
-                print("tianxiang: top ",(top+1)," arch val acc:",val)
-            # utils.save_checkpoint({'state_dict': model.state_dict(), }, epoch + 1, tag=args.exp_name + '_super')
+            validate(args, epoch, val_loader, device, model, criterion, supernet=True)
+            utils.save_checkpoint({'state_dict': model.state_dict(), }, epoch + 1, tag=args.exp_name + '_super')
 
     utils.time_record(start)
 

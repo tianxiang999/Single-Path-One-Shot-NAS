@@ -242,7 +242,7 @@ def select_top_arch (args, epoch, val_data, device, model, criterion, supernet):
         choice_list.append(my_choice)
 
         # validate the choice arch
-        val = validate(args, epoch, val_loader, device, model, criterion, supernet=True, choice=my_choice)
+        val = validate(args, epoch, val_data, device, model, criterion, supernet=True, choice=my_choice)
         arch_val_acc.append(val)
 
     # eval val acc and choose top archs
@@ -253,10 +253,10 @@ def select_top_arch (args, epoch, val_data, device, model, criterion, supernet):
     sortedlist.sort(reverse=True)
 
     for tmp in range(top):
-        idx = arch_val_acc.index(sortedlist(tmp))
-        top_choice_list.append(choice_list(idx))
+        idx = arch_val_acc.index(sortedlist[tmp])
+        top_choice_list.append(choice_list[idx])
 
-    return top_choice_list
+    return size(top_choice_list), top_choice_list
 
 
 
@@ -276,9 +276,15 @@ def select_test():
     print(choice_list[1])
 
 def pos_test(a, b = 1):
-    list = [1,4,13,12,11,21]
-    list2 = list.copy()
-    list.sort(reverse=True)
-    print(list)
+    listx = [1,4,13,12,11,21]
+    list2 = listx.copy()
+    listx.sort(reverse=True)
+    print(listx)
     print(list2)
-    print(size(list))
+    print(listx.index(1))
+
+    listqq=[[1,2],[3,4]]
+    k = listqq.index([1,2])
+    print(listx[k])
+    for tmp in range(3):
+        print(tmp)
